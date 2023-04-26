@@ -5,7 +5,7 @@ import java.util
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * @DESC: 一个数据倾斜的例子
+  * @DESC: 一个数据倾斜的例子v s
   * @Auther: Anryg
   * @Date: 2022/10/10 17:00
   */

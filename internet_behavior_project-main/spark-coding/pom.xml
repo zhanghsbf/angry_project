@@ -51,11 +51,11 @@
             <version>3.2.0</version>
         </dependency>
         <!--添加Redis模块依赖-->
-        <dependency>
-            <groupId>com.anryg.bigdata</groupId>
-            <artifactId>redis</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.anryg.bigdata</groupId>-->
+<!--            <artifactId>redis</artifactId>-->
+<!--            <version>1.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
         <!--spark处理结果sink到Elasticsearch-->
         <!--<dependency>
             <groupId>org.elasticsearch</groupId>

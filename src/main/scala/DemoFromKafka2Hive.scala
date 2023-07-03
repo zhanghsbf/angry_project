@@ -12,11 +12,11 @@ object DemoFromKafka2Hive {
         .option("kafka.bootstrap.servers", "zyk-bigdata-002:9092")
         .option("subscribe", "realtime_data")
         .load()
-
-    // kafka读出来默认是二进制，转为string
-    val value: Dataset[String] = df.selectExpr("cast(value as STRING)").map(row => {
-      row
-    })
+//
+//    // kafka读出来默认是二进制，转为string
+//    val value: Dataset[String] = df.selectExpr("cast(value as STRING)").map(row => {
+//      row
+//    })
 
 
   }

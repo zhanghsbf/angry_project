@@ -7,9 +7,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="angry_project" />
-        <module name="spark-coding" />
-        <module name="flink-coding" />
-        <module name="redis" />
       </profile>
     </annotationProcessing>
   </component>

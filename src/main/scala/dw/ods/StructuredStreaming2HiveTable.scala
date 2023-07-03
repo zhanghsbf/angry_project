@@ -1,17 +1,16 @@
+package dw.ods
+
 import com.alibaba.fastjson.JSON
-import org.apache.spark.sql.streaming.{OutputMode, ProcessingTime, Trigger}
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
+import org.apache.spark.sql.streaming.{OutputMode, Trigger}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
-import java.util
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.DurationInt
-import scala.util.parsing.json.JSONObject
 
-object StructuredStreamingConsumer {
+object StructuredStreaming2HiveTable {
   // spark上下文
   val spark = SparkSession.builder().appName("kafka_test").master("local[*]").enableHiveSupport().getOrCreate()
   import spark.implicits._
-
+  
   def main(args: Array[String]): Unit = {
     val df = spark.readStream
       .format("kafka")
@@ -45,10 +44,12 @@ object StructuredStreamingConsumer {
 
     val query = value.writeStream
       .outputMode(OutputMode.Append())
-      .format("console")
-      .start()
-//      .partitionBy("year","month","day")
-//      .trigger(Trigger.ProcessingTime(60,TimeUnit.SECONDS))  // 写入间隔
-    query.awaitTermination()
+      .format("orc")
+      .partitionBy("year","month","day")
+      .trigger(Trigger.ProcessingTime(60,TimeUnit.SECONDS))  // 写入间隔
+
+
+
+//    query.awaitTermination()
   }
 }

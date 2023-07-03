@@ -1,4 +1,4 @@
-package dw.ods
+package dw.dwd
 
 import com.alibaba.fastjson.JSON
 import org.apache.spark.sql.streaming.{OutputMode, Trigger}

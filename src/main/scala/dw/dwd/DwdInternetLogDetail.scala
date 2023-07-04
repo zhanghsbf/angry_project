@@ -1,8 +1,9 @@
 package dw.dwd
 
 import com.alibaba.fastjson.JSON
-import org.apache.spark.sql.streaming.{OutputMode, Trigger}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.execution.datasources.FileFormatWriter
+import org.apache.spark.sql.streaming.{OutputMode, StreamingQuery, Trigger}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 import java.util.concurrent.TimeUnit
 
@@ -11,46 +12,42 @@ object DwdInternetLogDetail {
   val spark = SparkSession.builder().appName("kafka_test").master("local[*]").enableHiveSupport().getOrCreate()
 
   import spark.implicits._
-
+  FileFormatWriter
 
   def main(args: Array[String]): Unit = {
-    val topic: String = "realtime_data"
-    val query = sink2Hive(doTransform(getSource(topic)))
+    val path:String = "/user/hive/warehouse/dw_ods.db/ods_kafka_internet_log"
+    val query = sink2Hive(doTransform(getHiveStream(path)))
     query.awaitTermination()
   }
 
   private def getHiveStream(path: String): DataFrame = {
-    val df = spark.readStream.schema("id String,domain String,time String,target_ip String,rcode String,query_type String,authority_record String,add_msg String,dns_ip String,year String,month String,day String")
-                    .orc("/user/hive/warehouse/zyktest.db/test")
+    val df = spark.readStream.schema("id String,client_ip String,domain String,time String,target_ip String,rcode String,query_type String,authority_record String,add_msg String,dns_ip String,year String,month String,day String")
+                    .orc(path)
     df
   }
 
   private def doTransform(df: DataFrame): DataFrame = {
-    //读kafka取出 message并做基本的清洗，默认值，添加上年月日字段
     df.printSchema()
-    val value: DataFrame = df.selectExpr("cast(value as STRING)").map(row => {
-      val kafkaStr = row.getString(0)
-      val message = JSON.parseObject(kafkaStr).getString("message")
-      val msgArray = message.split(",") //指定分隔符进行字段切分
-      msgArray
-    }).filter(_.length == 9) //只留字段数为9的数据
-      .filter(array => array(2).length >= 8) //确保日期字段符合规范
-      .map(array => (array(0) + array(1) + array(2)
-        , array(0)
-        , array(1)
-        , array(2)
-        , array(3)
-        , array(4)
-        , array(5)
-        , array(6)
-        , array(7)
-        , array(8)
-        , array(2).substring(0, 4)
-        , array(2).substring(4, 6)
-        , array(2).substring(6, 8)
-      ))
-      .toDF("id", "client_ip", "domain", "time", "target_ip", "rcode", "query_type", "authority_record", "add_msg", "dns_ip", "year", "month", "day")
-
+    val value = df.map(row =>{
+      val clientIP = row.getAs[String]("client_ip")
+      val ipAndAddr:String = null //IpSearch.getAddrByIP(RedisClientUtils.getSingleRedisClient, clientIP).split("-")
+      val country:String = null
+      val province:String = null
+      val city:String = null
+      val operator:String = null
+      val domain = row.getAs[String]("domain").toLowerCase //将域名转成小写
+      val time = row.getAs[String]("time")
+      val targetIP = row.getAs[String]("target_ip")
+      val rcode = row.getAs[String]("rcode")
+      val queryType = row.getAs[String]("query_type")
+      val authRecord = row.getAs[String]("authority_record").toLowerCase
+      val addMsg = row.getAs[String]("add_msg")
+      val dnsIP = row.getAs[String]("dns_ip")
+      val year = row.getAs[String]("year")
+      val month = row.getAs[String]("month")
+      val day = row.getAs[String]("day")
+      (clientIP, country, province, city, operator, domain, time, targetIP, rcode, queryType, authRecord, addMsg, dnsIP, year, month, day)
+    }).toDF("client_ip","country","province","city","operator","domain","time","target_ip","rcode","query_type","authority_record","add_msg","dns_ip","year","month","day")
     value
   }
 
@@ -63,9 +60,9 @@ object DwdInternetLogDetail {
           .format("orc")
           .mode(SaveMode.Append)
           .partitionBy("year", "month", "day")
-          .saveAsTable("dw_ods.ods_kafka_internet_log")
+          .saveAsTable("dw_dwd.dwd_internet_log_detail")
       })
-      .option("checkpointLocation", "hdfs://zyk-bigdata-001:8020/tmp/offset/test/ods_kafka_internet_log")
+      .option("checkpointLocation", "hdfs://zyk-bigdata-001:8020/tmp/offset/test/dwd_kafka_internet_log")
       .start()
     query
   }

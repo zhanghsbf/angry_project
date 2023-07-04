@@ -36,7 +36,8 @@ object OdsKafkaInternetLog {
       msgArray
     }).filter(_.length == 9) //只留字段数为9的数据
       .filter(array => array(2).length >= 8) //确保日期字段符合规范
-      .map(array => (array(0) + array(1) + array(2)
+      .map(array => (
+          array(0) + array(1) + array(2)
         , array(0)
         , array(1)
         , array(2)

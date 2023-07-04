@@ -1,34 +1,33 @@
-package dw.ods
+package dw.dwd
 
 import com.alibaba.fastjson.JSON
-import org.apache.spark.sql.streaming.{OutputMode, StreamingQuery, Trigger}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.streaming.{OutputMode, Trigger}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import java.util.concurrent.TimeUnit
 
-object OdsKafkaInternetLog {
+object DwdInternetLogDetail {
   // spark上下文
   val spark = SparkSession.builder().appName("kafka_test").master("local[*]").enableHiveSupport().getOrCreate()
+
   import spark.implicits._
 
 
   def main(args: Array[String]): Unit = {
-    val topic:String = "realtime_data"
-    val query = sink2Hive(doTransform(getKafkaStream(topic)))
+    val topic: String = "realtime_data"
+    val query = sink2Hive(doTransform(getSource(topic)))
     query.awaitTermination()
   }
 
-  private def getKafkaStream(topic:String):DataFrame={
-    val df = spark.readStream
-      .format("kafka")
-      .option("kafka.bootstrap.servers", "zyk-bigdata-002:9092")
-      .option("subscribe", topic)
-      .load()
+  private def getHiveStream(path: String): DataFrame = {
+    val df = spark.readStream.schema("id String,domain String,time String,target_ip String,rcode String,query_type String,authority_record String,add_msg String,dns_ip String,year String,month String,day String")
+                    .orc("/user/hive/warehouse/zyktest.db/test")
     df
   }
 
-  private def doTransform(df:DataFrame):DataFrame={
+  private def doTransform(df: DataFrame): DataFrame = {
     //读kafka取出 message并做基本的清洗，默认值，添加上年月日字段
+    df.printSchema()
     val value: DataFrame = df.selectExpr("cast(value as STRING)").map(row => {
       val kafkaStr = row.getString(0)
       val message = JSON.parseObject(kafkaStr).getString("message")
@@ -55,7 +54,7 @@ object OdsKafkaInternetLog {
     value
   }
 
-  def sink2Hive(result:DataFrame):StreamingQuery ={
+  def sink2Hive(result: DataFrame): StreamingQuery = {
     val query = result.writeStream
       .outputMode(OutputMode.Append())
       .trigger(Trigger.ProcessingTime(60, TimeUnit.SECONDS)) // 写入间隔
@@ -70,6 +69,4 @@ object OdsKafkaInternetLog {
       .start()
     query
   }
-
 }
-

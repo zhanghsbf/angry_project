@@ -1,23 +1,36 @@
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 object DemoFromKafka2Hive {
   // spark上下文
-  val spark = SparkSession.builder().appName("kafka_test").master("local[*]").enableHiveSupport().getOrCreate()
+  val spark = SparkSession.builder().appName("连续登陆领金币问题").master("local[*]").getOrCreate()
   import spark.implicits._
 
   def main(args: Array[String]): Unit = {
-      // 1. 接入kafka数据源
-      val df = spark.readStream
-        .format("kafka")
-        .option("kafka.bootstrap.servers", "zyk-bigdata-002:9092")
-        .option("subscribe", "realtime_data")
-        .load()
-//
-//    // kafka读出来默认是二进制，转为string
-//    val value: Dataset[String] = df.selectExpr("cast(value as STRING)").map(row => {
-//      row
-//    })
-
-
+    val seq = Seq(
+      (101, 0, "2021-07-07 10:00:00", "2021-07-07 10:00:09", 1),
+      (101, 0, "2021-07-08 10:00:00", "2021-07-08 10:00:09", 1),
+      (101, 0, "2021-07-09 10:00:00", "2021-07-09 10:00:42", 1),
+      (101, 0, "2021-07-10 10:00:00", "2021-07-10 10:00:09", 1),
+      (101, 0, "2021-07-12 10:00:28", "2021-07-12 10:00:50", 1),
+      (101, 0, "2021-07-13 10:00:32", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-17 09:00:09", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-18 09:30:09", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-19 09:45:09", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-20 09:58:09", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-15 10:00:28", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-16 11:00:28", "2021-07-13 10:00:50", 1),
+      (101, 0, "2021-07-14 10:00:18", "2021-07-13 10:00:50", 1),
+      (102, 0, "2021-10-01 10:00:20", "2021-10-01 10:00:50", 1),
+      (101, 0, "2021-07-11 23:59:55", "2021-07-11 23:59:59", 1),
+      (102, 0, "2021-10-02 10:00:01", "2021-10-02 10:01:50", 1),
+      (102, 0, "2021-10-03 11:00:55", "2021-10-03 11:00:59", 1),
+      (102, 0, "2021-10-04 11:00:45", "2021-10-04 11:00:55", 0),
+      (102, 0, "2021-10-05 11:00:53", "2021-10-05 11:00:59", 1),
+      (102, 0, "2021-10-06 11:00:45", "2021-10-06 11:00:55", 1)
+    )
+    val baseData: DataFrame = spark.createDataset(seq).toDF("uid","article_id","in_time","out_time","if_sign")
+    val df = baseData.where($"article_id" === 0 and $"if_sign" === 1 and $"in_time".between("2021-07-07 00:00:00","2021-10-31 23:59:59" ))
+//    println(df.collect().mkString("\n"))
+    df.withColumn()
   }
 }

@@ -1,3 +1,5 @@
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
 object DemoFromKafka2Hive {
@@ -28,9 +30,22 @@ object DemoFromKafka2Hive {
       (102, 0, "2021-10-05 11:00:53", "2021-10-05 11:00:59", 1),
       (102, 0, "2021-10-06 11:00:45", "2021-10-06 11:00:55", 1)
     )
-    val baseData: DataFrame = spark.createDataset(seq).toDF("uid","article_id","in_time","out_time","if_sign")
-    val df = baseData.where($"article_id" === 0 and $"if_sign" === 1 and $"in_time".between("2021-07-07 00:00:00","2021-10-31 23:59:59" ))
-//    println(df.collect().mkString("\n"))
-    df.withColumn()
+    val df: DataFrame = spark.createDataset(seq).toDF("uid","article_id","in_time","out_time","if_sign")
+    val baseData = df.where($"article_id" === 0 and $"if_sign" === 1 and $"in_time".between("2021-07-07 00:00:00","2021-10-31 23:59:59" ))
+
+    val rnk = baseData.withColumn("rn", row_number() over Window.partitionBy($"uid").orderBy($"in_time"))
+    val result = rnk.selectExpr("uid", "in_time", "date_sub(to_date(in_time), rn) as sub_dt")
+      .withColumn("continuous_login", row_number() over Window.partitionBy("uid", "sub_dt").orderBy("in_time"))
+      .selectExpr("uid", "substr(to_date(in_time),1,7) as month", "sub_dt"
+                , "case when continuous_login % 7 = 0 then 6" +
+                  "     when continuous_login % 7 = 3 then 2" +
+                  "     else 1" +
+                  " end as gold ")
+      .groupBy("uid","month").sum("gold")
+
+//    rnk.selectExpr("uid", "to_date(in_time) as login_dt", "rn").withColumn("cnt", groupBy("uid","rn").count())
+
+    result.printSchema()
+    println(result.collect().mkString("\n"))
   }
 }

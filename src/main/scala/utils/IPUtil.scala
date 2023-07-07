@@ -11,37 +11,40 @@ object IPUtil extends Serializable {
 
   val loc: IP2Location = new IP2Location
   private val bis: InputStream = new BufferedInputStream(this.getClass.getClassLoader.getResourceAsStream("IP2LOCATION-LITE-DB3.BIN"))
-  private var bt:Array[Byte] = new Array[Byte](1024 * 1024 * 50)
+  var bt:Array[Byte] = new Array[Byte](1024 * 1024 * 50)
   bis.read(bt)
   loc.Open(bt)
 
   def parseIpCountry(ip: String): String = {
     val rec = loc.IPQuery(ip)
-    if ("OK" == rec.getStatus)
+    if ("OK".equals(rec.getStatus))
       rec.getCountryShort
-    null
+    else
+      null
   }
 
   def parseIpProvince(ip: String): String = {
     val rec = loc.IPQuery(ip)
-    if ("OK" == rec.getStatus)
+    if ("OK".equals(rec.getStatus))
       rec.getRegion
-    null
+    else
+      null
   }
 
   def parseIpCity(ip: String): String = {
     val rec = loc.IPQuery(ip)
-    if ("OK" == rec.getStatus)
+    if ("OK".equals(rec.getStatus))
       rec.getCity
-    null
+    else
+      null
   }
 
   def main(args: Array[String]): Unit = {
-//    println(loc.IPQuery("85.0.130.91"))
-//    println(loc.IPQuery("85.0.130.92"))
-    println(bt.length)
-    for(i <- bt){
-
-    }
+    println(IPUtil.parseIpCountry("85.0.214.123"))
+    val result = IPUtil.loc.IPQuery("85.0.214.123")
+    println(result.getCountryShort)
+    println(result.getRegion)
+    println(result.getCity)
+    println(result)
   }
 }

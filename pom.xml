@@ -33,6 +33,13 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.71</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.ip2location</groupId>
+            <artifactId>ip2location-java</artifactId>
+            <version>8.11.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON
 import org.apache.spark.sql.execution.datasources.FileFormatWriter
 import org.apache.spark.sql.streaming.{OutputMode, StreamingQuery, Trigger}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
-import utils.IPUtil
 
 import java.util.concurrent.TimeUnit
 
@@ -31,9 +30,10 @@ object DwdInternetLogDetail {
     df.printSchema()
     val value = df.map(row =>{
       val clientIP = row.getAs[String]("client_ip")
-      val country:String = IPUtil.parseIpCountry(clientIP)      // 解析IP
-      val province:String = IPUtil.parseIpProvince(clientIP)
-      val city:String = IPUtil.parseIpCity(clientIP)
+      val ipAndAddr:String = null //IpSearch.getAddrByIP(RedisClientUtils.getSingleRedisClient, clientIP).split("-")
+      val country:String = null
+      val province:String = null
+      val city:String = null
       val operator:String = null
       val domain = row.getAs[String]("domain").toLowerCase //将域名转成小写
       val time = row.getAs[String]("time")

@@ -44,11 +44,6 @@
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
-        <resources>
-            <resource>
-                <directory>resource</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>

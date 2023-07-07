@@ -37,7 +37,11 @@ object IPUtil extends Serializable {
   }
 
   def main(args: Array[String]): Unit = {
-    println(loc.IPQuery("85.0.130.91"))
-    println(loc.IPQuery("85.0.130.92"))
+//    println(loc.IPQuery("85.0.130.91"))
+//    println(loc.IPQuery("85.0.130.92"))
+    println(bt.length)
+    for(i <- bt){
+
+    }
   }
 }

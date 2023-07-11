@@ -4,6 +4,7 @@ target/*
 
 # idea
 .idea/*
+angry_project.iml
 
 # Log file
 *.log
